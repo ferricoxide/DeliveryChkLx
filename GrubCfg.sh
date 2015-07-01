@@ -42,9 +42,9 @@ then
             RETCODE=1
          fi
       fi
-##    else
-##       ln -s ${GRUBCFG} ${GRUBETC} || { RETCODE=1 ; \
-##         echo "Link-creation failed" > /dev/stderr }
+   else
+      ln -s ${GRUBCFG} ${GRUBETC} || { RETCODE=1 ; \
+        echo "Link-creation failed" > /dev/stderr }
    fi
 else
    # Alert if file does not exist
