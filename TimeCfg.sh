@@ -73,3 +73,30 @@ else
       RETCODE=1
    fi
 fi
+
+# Check shell-date
+SHELLTZ=$(date "+%Z")
+if [[ "${SHELLTZ}" = ${WANTEDTZ} ]]
+then
+   echo "Shell TimeZone matches system TimeZone [${WANTEDTZ}]."
+else
+   printf "Shell TimeZone [${SHELLTZ}] not the same as " > /dev/stderr
+   echo "system TimeZone [${WANTEDTZ}]." > /dev/stderr
+   SHINITFILES=(
+      /etc/profile
+      /etc/profile.d/*
+      /etc/csh.cshrc
+      /etc/csh.login
+      ${HOME}/.profile
+      ${HOME}/.bash_profile
+      ${HOME}/.bashrc
+      ${HOME}/.cshrc
+      ${HOME}/.kshrc
+      ${HOME}/.tcshrc
+   )
+   TZSETTERS=$(grep -l TZ ${SHINITFILES})
+   if [ "${TZSETTERS}" != "" ]
+   then
+      echo "Check ${TZSETTERS} for shell-level overrides." > /dev/stderr
+   fi
+fi
