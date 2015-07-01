@@ -41,10 +41,21 @@ then
             fi
             RETCODE=1
          fi
+      else
+         # Let's save the contents for later...
+         mv ${GRUBETC} ${GRUBETC}-BAK_${SAVDATE}
+         if [[ $? -eq 0 ]]
+         then
+            ln -s ${GRUBCFG} ${GRUBETC}
+         else
+            echo "Cannot fix ${GRUBETC}"
+            RETCODE=1
+         fi
+         RETCODE=1
       fi
    else
       ln -s ${GRUBCFG} ${GRUBETC} || { RETCODE=1 ; \
-        echo "Link-creation failed" > /dev/stderr }
+        echo "Link-creation failed" > /dev/stderr ;}
    fi
 else
    # Alert if file does not exist
