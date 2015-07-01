@@ -85,12 +85,17 @@ then
          if [[ $? -eq 0 ]]
          then
             ln ${GRUBCFG} ${XENGRUBCFG} || { RETCODE=1 ; \
-              echo "Failed. > /dev/stderr ; }
+              echo "Failed." > /dev/stderr ; }
          else
             echo "Could not move ${XENGRUBCFG}" > /dev/stderr
             RETCODE=1
          fi
+      elif [[ $(find /boot -inum $(stat -c "%i" ${GRUBCFG}) | \
+        grep -w ${GRUBCFG}) = "${GRUBCFG}" ]]
+      then
+         echo "${XENGRUBCFG} hardlinks to ${GRUBCFG}"
       fi
    fi
+fi
 
 exit ${RETCODE}
