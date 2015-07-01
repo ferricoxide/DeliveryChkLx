@@ -19,13 +19,26 @@ else
    exit 1
 fi
 
-SYSCFGVAL=$(awk -F "=" '/'${WANTEDTZ}'/{ print $2 }' ${CLOCKCFG} |
-   grep -x ${WANTEDTZ})
-
-if [ "${SYSCFGVAL}" = "" ]
+if [ -f ${CLOCKCFG} ]
 then
-   echo "${WANTEDTZ} not set in ${CLOCKCFG}." > /dev/stderr
-   RETCODE=1
-else
-   echo "${WANTEDTZ} set in ${CLOCKCFG}."
+   # Compare desired TZ value to one set in /etc/sysconfig/clock
+   SYSCFGVAL=$(awk -F "=" '/'${WANTEDTZ}'/{ print $2 }' ${CLOCKCFG} |
+      grep -x ${WANTEDTZ})
+   
+   # Fix /etc/sysconfig/clock if necessary
+   if [ "${SYSCFGVAL}" = "" ]
+   then
+      printf "${WANTEDTZ} not set in ${CLOCKCFG}. " > /dev/stderr
+      echo "Attempting to fix." > /dev/stderr
+      sed -i '/^ZONE/s/=.*/='${WANTEDTZ}'/' ${CLOCKCFG}
+      if [[ $? -eq 0 ]]
+      then
+         echo "Updated 'ZONE' setting in ${CLOCKCFG} to ${WANTEDTZ}."
+      else
+         echo "Update of ${CLOCKCFG} failed." > /dev/stderr
+         RETCODE=1
+      fi
+   else
+      echo "${WANTEDTZ} already set in ${CLOCKCFG}."
+   fi
 fi
