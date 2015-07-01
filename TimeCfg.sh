@@ -50,7 +50,19 @@ fi
 # Verify that /etc/localtime is correct
 if [ -f ${LOCALTIME} ]
 then
-   echo "${LOCALTIME} exists"
+   printf "${LOCALTIME} exists "
+   SUMLOCALTIME=$(md5sum ${LOCALTIME} | awk '{print $1}')
+   SUMWANTTIME=$(md5sum ${ZONEFILDIR}/${WANTEDTZ} | awk '{print $1}')
+   if [[ "${SUMLOCALTIME}" = "${SUMWANTTIME}" ]]
+   then
+      echo "...and is correct"
+   else
+      echo "...but is incorrect. Attempting to fix"
+      rm ${LOCALTIME} || echo "Failed to remove bad ${LOCALTIME}" > /dev/stderr
+      cp "${ZONEFILDIR}/${WANTEDTZ}" ${LOCALTIME} || { echo Failed ;
+        RETCODE=1 ; }
+   fi
+
 else
    cp "${ZONEFILDIR}/${WANTEDTZ}" "${LOCALTIME}"
    if [[ $? -eq 0 ]]
