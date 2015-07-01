@@ -4,8 +4,13 @@
 #
 ############################################################
 SAVDATE=$(date "+%Y%m%d%H%M")
-GRUBCFG="/boot/grub/grub.conf"
+REALBOOTD="/boot"
+REALGRUBD="${REALBOOTD}/grub"
+GRUBCFG="${REALGRUBD}/grub.conf"
 GRUBETC="/etc/grub.conf"
+XENBOOTD="/boot/boot"
+XENGRUBD="${XENBOOTD}/grub"
+XENGRUBCFG="${XENGRUBD}/grub.conf"
 
 # Verify that /boot/grub/grub.conf exists
 if [ -e ${GRUBCFG} ]
@@ -63,5 +68,29 @@ else
    echo "system use GRUB to boot?" > /dev/stder
    RETCODE=1
 fi
+
+# See if /boot/boot exists
+if [ -d ${XENBOOTD} ]
+then
+   # Ensure /boot/boot/grub/grub.conf is a real file
+   if [ -e ${XENGRUBCFG} ] && [ ! -h ${XENGRUBCFG} ]
+   then
+      # Check link-count
+      if [[ $(stat -c "%h" ${XENGRUBCFG}) -eq 1 ]]
+      then
+         printf "${XENGRUBCFG} is not hardlinked. " > /dev/stderr
+         echo "Attempting to fix..." > /dev/stderr
+         mv ${XENGRUBCFG} ${XENGRUBCFG}-BAK_${SAVDATE}
+         # Check save operation status
+         if [[ $? -eq 0 ]]
+         then
+            ln ${GRUBCFG} ${XENGRUBCFG} || { RETCODE=1 ; \
+              echo "Failed. > /dev/stderr ; }
+         else
+            echo "Could not move ${XENGRUBCFG}" > /dev/stderr
+            RETCODE=1
+         fi
+      fi
+   fi
 
 exit ${RETCODE}
