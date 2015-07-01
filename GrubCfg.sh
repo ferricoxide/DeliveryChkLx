@@ -31,8 +31,10 @@ then
       then
          WHEREPT=$(readlink ${GRUBETC})
          # Ensure /etc/grub.conf points to /boot/grub/grub.conf
-         if [ "${WHEREPT}" != "${GRUBCFG}" ]
+         if [ "${WHEREPT}" = "${GRUBCFG}" ]
          then
+            echo "${GRUBETC} symlinks to ${GRUBCFG}"
+         else
             printf "${GRUBETC} does not point to " > /dev/stderr
             echo "${GRUBCFG}. Fixing." > /dev/stderr
             # Let's save the contents for later...
