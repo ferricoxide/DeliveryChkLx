@@ -100,4 +100,19 @@ then
    fi
 fi
 
+# Clean up menu.lst file(s)
+MENULSTS=$(find ${REALBOOTD} -name menu.lst -type l)
+for MENU in ${MENULSTS}
+do
+   MENUDIR=$(dirname ${MENU})
+   LNKSRC=$(readlink ${MENU})
+   if [[ $(echo ${LNKSRC} | grep -x "grub.conf") = "grub.conf" ]]
+   then
+      echo "${MENU} links from ./grub.conf"
+   else
+      echo "${MENU} does not link from ./grub.conf" > /dev/stderr
+      RETCODE=1
+   fi
+done
+
 exit ${RETCODE}
