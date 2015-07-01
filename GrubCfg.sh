@@ -1,6 +1,7 @@
 #!/bin/sh
 #
-# Script to ensure that GRUB-related config files exist in their proper form
+# Script to ensure that GRUB-related config files exist in their
+# proper forms and locations
 #
 ############################################################
 SAVDATE=$(date "+%Y%m%d%H%M")
