@@ -115,4 +115,8 @@ do
    fi
 done
 
-exit ${RETCODE}
+if [ "${RETCODE}" != "" ]
+then
+   echo "Notice: one or more validations failed" > /dev/stderr
+   exit ${RETCODE}
+fi
