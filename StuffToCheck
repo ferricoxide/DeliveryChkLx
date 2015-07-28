@@ -1,0 +1,80 @@
+* Determine composition of root filesystems
+  * Number of devices
+  * Size of devices
+  * Partitioning of devices
+    * if any STIG-mandated mounts are missing
+    * if any volumes present that should not be
+    * Size of partitions/LVs
+    * Mount options (and if any STIG-mandated options are absent)
+* GRUB configuration files
+  * Which locations they exist at
+  * Whether they are properly linked
+  * Whether STIG-mandated options are present
+* SELinux configuration
+  * What enforcement-mode is set
+  * What enforcement-type is set
+  * Are /etc/selinux/config and /etc/sysconfig/selinux properly linked
+* A/V:
+  * Installed
+  * Running
+* SSH Daemon
+  * Capture all explicitly-set options
+    * Allowed MACs
+    * Allowed Ciphers
+    * Allowed Groups
+    * GSSAPI config
+    * Password-based authentication allowed
+    * Is UsePam set
+    * Is UsePrivilegeSeparation set
+  * Enumerate missing options
+* Splunk
+  * Installed
+  * Running
+* `sudo` configuration
+  * List of allowed groups and associated privilege-sets
+  * List of allowed users and associated privilege-sets
+  * Locations of definition files (is /etc/sudoers.d empty)
+* Software manifest
+  * Number of packages
+  * List of packages
+* Supplemental Authentication (PBIS)
+  * Installed
+  * Version
+  * Configuration:
+    * HomeDirTemplate Value
+    * Local_HomeDirTemplate Value
+    * LoginShellTemplate value
+    * Local_LoginShellTemplate value
+    * DomainManagerIgnoreAllTrusts value
+    * DomainManagerIncludeTrustsLists value
+* Host Firewall
+  * Enabled
+  * Rule-sets
+* Sysctl explicit settings from /etc/sysctl.conf (do they match STIGs)
+* Module tools
+  * Which files exist
+  * Which files are part of OS distribution
+  * Which distribution-files have been modified
+  * Which files are custom
+* Local user-objects
+  * Users defined in /etc/passwd
+  * Groups defined in /etc/group
+  * Users locked in /etc/shadow
+  * Count-difference between /etc/passwd and /etc/shadow
+* Do /etc/resolv.conf entries make sense
+* Do /etc/sysconfig/network-scripts/ifcfg-<IF> file-contents make sense
+* Get hardware-type (Vendor-tag: VMware or Xen; no SMBIOS = Xen-PVM) 
+  * Check for AWS RPMs as  appropriate
+    * aws-amitools-ec2
+    * aws-apitools-as
+    * aws-apitools-common
+    * aws-apitools-ec2
+    * aws-apitools-elb
+    * aws-apitools-mon
+    * aws-apitools-rds
+    * ec2-net-utils
+    * ec2-utils
+    * “aws” binary in /usr/bin, /usr/local/bin and/or opt (first two should be symlinks)
+    * Check for updated boto configs
+    * Check for updated PKI configs
+  * Check for VMware RPMs as appropriate
