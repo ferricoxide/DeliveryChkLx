@@ -1,9 +1,10 @@
 #!/bin/sh
 #
 # * SELinux configuration
-#   * Verify /etc/selinux/config and /etc/sysconfig/selinux linking	( )
+#   * Verify /etc/selinux/config and /etc/sysconfig/selinux linking	(✓)
 #   * What enforcement-mode is set					( )
 #   * What enforcement-type is set					( )
+#   * Check whether set at boot (via GRUB)				( )
 #
 #################################################################
 FIX=${FIX:-0}
