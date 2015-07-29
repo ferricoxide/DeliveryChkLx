@@ -112,6 +112,19 @@ function CheckIfPart() {
   
 }
 
+function GetRootVG() {
+   local GETLVS=$(lvs --noheadings $(mount | awk '/ \/ /{ print $1}') 2> /dev/null)
+   echo ${GETLVS}
+
+   if [ "${GETLVS}" = "" ]
+   then
+      echo "\"/\" filesystem not in LVM Volume-Group"
+   else
+      VG=$(echo ${GETLVS} | awk '{print $2}')
+      echo "\"/\" filesystem in ${VG} LVM Volume-Group"
+   fi
+}
+
 StigMounts
 CreateRootKVP
 
@@ -123,3 +136,5 @@ done
 
 printf "${TOKINF}\tOS filesystems found on: ${PHYSDEVLST}\n"
 CheckIfPart "${PHYSDEVLST}"
+
+GetRootVG
