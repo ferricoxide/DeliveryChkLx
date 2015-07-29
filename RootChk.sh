@@ -12,6 +12,7 @@
 #################################################################
 BLOCKDEVS=($(fdisk -lu | awk '/Disk \/dev\/.*bytes/{ print $2}' | \
            grep -v "/mapper/" | sed 's/:$//'))
+PHYSDEVLST=""
 KEYROOTDIRS=(/ /boot)
 ALLROOTDIRS=(${KEYROOTDIRS[@]})
 STIGMNTS=(		# STIG-mandated mounts
@@ -26,6 +27,7 @@ declare -A ROOTDIRSKVP
 # Color-coded status tokens
 TOKERR="\033[0;33m[CHECK]\033[0m"
 TOKAOK="\033[0;32m[OK]\033[0m"
+TOKINF="\033[0;0m[INFO]\033[0m"
 
 # Check if key directories are mountpoints (per STIGs)
 function StigMounts() {
@@ -46,7 +48,7 @@ function StigMounts() {
       
 }
 
-function GetMountDevs() {
+function CreateRootKVP() {
    local COUNT
    while [[ ${COUNT} -lt ${#ALLROOTDIRS[@]} ]]
    do
@@ -60,11 +62,47 @@ function GetMountDevs() {
    done
 }
 
+function CoreDiskObjects() {
+   local STOROBJ=$1
+   case ${STOROBJ} in
+      tmpfs) 
+         echo "is not on a block device"
+         ;;
+      /dev/mapper/*)
+         local PHYSDEV=$(lvs --noheadings -o devices ${STOROBJ} | \
+                         sed -e 's/(.*$//' -e 's/^ *//')
+
+         if [[ ${PHYSDEVLST} =~ (^| )${PHYSDEV}($| ) ]]
+         then
+            echo > /dev/null # This is a no-op
+         else
+            PHYSDEVLST="${PHYSDEVLST} ${PHYSDEV}"
+         fi
+
+         echo "is on an LVM device"
+         ;;
+      /dev/xv*|/dev/sd*)
+
+         if [[ ${PHYSDEVLST} =~ (^| )${STOROBJ}($| ) ]]
+         then
+            echo > /dev/null # This is a no-op
+         else
+            PHYSDEVLST="${PHYSDEVLST} ${STOROBJ}"
+         fi
+         echo "is on a bare disk"
+         ;;
+      *)
+         echo "is NOT categorizable"
+         ;;
+   esac
+}
+
 StigMounts
-GetMountDevs
+CreateRootKVP
 
 for ELEM in "${!ROOTDIRSKVP[@]}"
 do
-   echo "Key:   ${ELEM}"
-   echo "Value: ${ROOTDIRSKVP[${ELEM}]}"
+   printf "${TOKINF}\t${ELEM} "
+   CoreDiskObjects "${ROOTDIRSKVP[${ELEM}]}"
 done
+echo "Dev-list: ${PHYSDEVLST}"
