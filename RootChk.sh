@@ -21,6 +21,7 @@ STIGMNTS=(		# STIG-mandated mounts
    /home
    /tmp
 )
+declare -A ROOTDIRSKVP
 
 # Color-coded status tokens
 TOKERR="\033[0;33m[CHECK]\033[0m"
@@ -45,4 +46,24 @@ function StigMounts() {
       
 }
 
+function GetMountDevs() {
+   local COUNT
+   while [[ ${COUNT} -lt ${#ALLROOTDIRS[@]} ]]
+   do
+      local ARRKEY="${ALLROOTDIRS[${COUNT}]}"
+      local FSDEV=$(grep " ${ARRKEY} " /proc/mounts | sed 's/ .*$//')
+      echo "${FSDEV} mounted at ${ALLROOTDIRS[${COUNT}]}"
+      ROOTDIRSKVP[${ALLROOTDIRS[${COUNT}]}]="${FSDEV}"
+      
+      ((COUNT++))
+   done
+}
+
 StigMounts
+GetMountDevs
+
+for ELEM in "${!ROOTDIRSKVP[@]}"
+do
+   echo "Key:   ${ELEM}"
+   echo "Value: ${ROOTDIRSKVP[${ELEM}]}"
+done
