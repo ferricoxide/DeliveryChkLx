@@ -2,13 +2,14 @@
 #
 # Script to audit filesystems/volumes/devices used for hosting the
 # root (OS) filesystems:
-#   o Number of devices
-#   o Size of devices
-#   o Partitioning of devices
-#     § if any STIG-mandated mounts are missing
-#     § if any LVM2 volumes present in root VG that should not be
-#     § Size of partitions/LVs
-#     § Mount options (and if any STIG-mandated options are absent
+# * Number of devices							(✓)
+# * Size of devices
+#   * Partitioning of devices
+#     * If any STIG-mandated mounts are missing				(✓)
+#     * If any LVM2 volumes present in root VG that should not be	(✓)
+#     * Size of partitions/LVs						( )
+#     * Mount options (and if any STIG-mandated options are absent)	( )
+#
 #################################################################
 BLOCKDEVS=($(fdisk -lu | awk '/Disk \/dev\/.*bytes/{ print $2}' | \
            grep -v "/mapper/" | sed 's/:$//'))
@@ -98,18 +99,32 @@ function CoreDiskObjects() {
 }
 
 function CheckIfPart() {
-   local DEVLIST="${1}"
-   local DISKLIST=$(fdisk -lu | grep "^Disk /dev" | grep -v mapper)
-   for DEV in ${DEVLIST}
+   local DISKLIST="${1}"
+   local ALLBLKDEVS="$(cd /sys/block ; echo *)"
+   local REALDISKS=""
+
+   # Check DISKLIST to compute parent device
+   for ELEM in ${DISKLIST}
    do
-      if [[ ${DISKLIST} =~ (^| )${DEV}($| ) ]]
-      then
-         printf "\t${DEV} is a physical disk\n"
-      else
-         printf "\t${DEV} is a partition on a physical disk\n"
-      fi
+      local ELEMCK=$(echo ${ELEM} | sed 's#/dev/##')
+      while [ "${ELEMCK}" != "" ]
+      do
+         if [[ ${ALLBLKDEVS} =~ (^| )${ELEMCK}($| ) ]]
+         then
+            if [[ ${REALDISKS} =~ (^| )/dev/${ELEMCK}($| ) ]]
+            then
+               echo > /dev/null
+            else
+               local REALDISKS+="/dev/${ELEMCK} "
+            fi 
+            break
+         else
+             ELEMCK=$(echo ${ELEMCK} | sed 's/.$//')
+         fi
+      done
    done
-  
+   
+   echo "${REALDISKS}"
 }
 
 function GetRootVG() {
@@ -155,7 +170,8 @@ do
 done
 
 printf "${TOKINF}\tOS filesystems found on: ${PHYSDEVLST}\n"
-CheckIfPart "${PHYSDEVLST}"
+REALDISKS=$(CheckIfPart "${PHYSDEVLST}")
+printf "\tOS on block-device(s): $REALDISKS\n"
 
 GetRootVG
 RootVgMember
