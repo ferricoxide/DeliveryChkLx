@@ -1,20 +1,29 @@
-DISKLIST="/dev/xvde1 /dev/xvde2 /dev/xvdj1"
-ALLBLKDEVS="$(cd /sys/block ; echo *)"
+function GetRealDsk() {
+   local DISKLIST="${1}"
+   local ALLBLKDEVS="$(cd /sys/block ; echo *)"
+   local REALDISKS=""
 
-# Check DISKLIST to compute parent device
-for ELEM in ${DISKLIST}
-do
-   ELEMCK=$(echo ${ELEM} | sed 's#/dev/##')
-   while [ "${ELEMCK}" != "" ]
+   # Check DISKLIST to compute parent device
+   for ELEM in ${DISKLIST}
    do
-      if [[ ${ALLBLKDEVS} =~ (^| )${ELEMCK}($| ) ]]
-      then
-          REALDISKS+=" /dev/${ELEMCK}"
-          break
-      else
-          ELEMCK=$(echo ${ELEMCK} | sed 's/.$//')
-      fi
+      ELEMCK=$(echo ${ELEM} | sed 's#/dev/##')
+      while [ "${ELEMCK}" != "" ]
+      do
+         if [[ ${ALLBLKDEVS} =~ (^| )${ELEMCK}($| ) ]]
+         then
+            if [[ ${REALDISKS} =~ (^| )/dev/${ELEMCK}($| ) ]]
+            then
+               echo > /dev/null
+            else
+               REALDISKS+="/dev/${ELEMCK}"
+               REALDISKS+=" "
+            fi 
+            break
+         else
+             ELEMCK=$(echo ${ELEMCK} | sed 's/.$//')
+         fi
+      done
    done
-done
-
-echo "Real devs: ${REALDISKS}"
+   
+   echo "Real devs: ${REALDISKS}"
+}
