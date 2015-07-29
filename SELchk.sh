@@ -3,6 +3,7 @@
 # * SELinux configuration
 #   * Verify /etc/selinux/config and /etc/sysconfig/selinux linking	(✓)
 #   * What enforcement-mode is set					( )
+#   * What enforcement-mode is active					( )
 #   * What enforcement-type is set					( )
 #   * Check whether set at boot (via GRUB)				( )
 #
@@ -10,6 +11,8 @@
 FIX=${FIX:-0}
 SELCFCANON=/etc/selinux/config
 SELCFSYSCF=/etc/sysconfig/selinux	# Linkpath ../selinux/config
+NORMALIZE='tr "[:upper:]" "[:lower:]"'
+
 
 # Color-coded output tags
 TOKERR="\033[0;33m[CHECK]\033[0m"
@@ -34,3 +37,15 @@ function ChkSELlink() {
 }
 
 ChkSELlink
+
+SETSELMODE=$(awk -F"=" '/^SELINUX=/{ print $2 }' ${SELCFCANON} | ${NORMALIZE})
+ACTSELMODE=$(getenforce | ${NORMALIZE})
+
+if [[ "${ACTSELMODE}" = "${SETSELMODE}" ]]
+then
+   printf "${TOKINF}\tSELINUX configured-mode set to ${SETSELMODE}\n"
+   printf "${TOKINF}\tSELINUX active-mode set to ${ACTSELMODE}\n"
+else
+   printf "${TOKERR}\tSELINUX configured-mode set to ${SETSELMODE}\n"
+   printf "${TOKERR}\tSELINUX active-mode set to ${ACTSELMODE}\n"
+fi
