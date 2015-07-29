@@ -10,6 +10,9 @@
 #     * Size of partitions/LVs						( )
 #     * Mount options (and if any STIG-mandated options are absent)	( )
 #
+# NOTE: This script is a check-only script. No fix-actions defined
+#       within this script
+#
 #################################################################
 BLOCKDEVS=($(fdisk -lu | awk '/Disk \/dev\/.*bytes/{ print $2}' | \
            grep -v "/mapper/" | sed 's/:$//'))
@@ -171,7 +174,7 @@ done
 
 printf "${TOKINF}\tOS filesystems found on: ${PHYSDEVLST}\n"
 REALDISKS=$(CheckIfPart "${PHYSDEVLST}")
-printf "\tOS on block-device(s): $REALDISKS\n"
+printf "\tOS on block-device(s): ${REALDISKS}\n}"
 
 GetRootVG
 RootVgMember
