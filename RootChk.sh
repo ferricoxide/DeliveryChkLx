@@ -13,6 +13,7 @@
 BLOCKDEVS=($(fdisk -lu | awk '/Disk \/dev\/.*bytes/{ print $2}' | \
            grep -v "/mapper/" | sed 's/:$//'))
 PHYSDEVLST=""
+VOLGRPLST=""
 KEYROOTDIRS=(/ /boot)
 ALLROOTDIRS=(${KEYROOTDIRS[@]})
 STIGMNTS=(		# STIG-mandated mounts
@@ -69,9 +70,20 @@ function CoreDiskObjects() {
          RETSTR="is not on a block device"
          ;;
       /dev/mapper/*)
-         local PHYSDEV=$(lvs --noheadings -o devices ${STOROBJ} | \
-                         sed -e 's/(.*$//' -e 's/^ *//')
+         local LVSGET=$(lvs --noheadings -o +devices ${STOROBJ} | \
+                         sed -e 's/^ *//' -e 's/ *$//')
+         local VGMEMBR=$(echo ${LVSGET} | awk '{print $2}')
+         local PHYSDEV=$(echo ${LVSGET} | awk '{print $5}' | sed -e 's/(.*$//')
 
+         # Populate device-list with unique devices
+         if [[ ${VOLGRPLST} =~ (^| )${VGMEMBR}($| ) ]]
+         then
+            echo > /dev/null # This is a no-op
+         else
+            VOLGRPLST="${VOLGRPLST} ${VGMEMBR}"
+         fi
+
+         # Populate device-list with unique devices
          if [[ ${PHYSDEVLST} =~ (^| )${PHYSDEV}($| ) ]]
          then
             echo > /dev/null # This is a no-op
@@ -124,3 +136,4 @@ done
 
 printf "${TOKINF}\tOS filesystems found on: ${PHYSDEVLST}\n"
 CheckIfPart "${PHYSDEVLST}"
+printf "${TOKINF}\tOS filesystems found in LVM VG(s): ${VOLGRPLST}\n"
