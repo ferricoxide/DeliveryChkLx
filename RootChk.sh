@@ -128,9 +128,6 @@ function RootVgMember() {
    local LVLIST=$(lvs --noheadings VolGroup00 | awk '{print $1}')
    local XCKLST="/ ${STIGMNTS[@]} /usr /opt"
 
-   echo ${LVLIST}
-   echo ${XCKLST}
-
    # See only expected root volumes are in root volume-group
    for LVOL in ${LVLIST}
    do
