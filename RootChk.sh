@@ -97,6 +97,21 @@ function CoreDiskObjects() {
    esac
 }
 
+function CheckIfPart() {
+   local DEVLIST="${1}"
+   local DISKLIST=$(fdisk -lu | grep "^Disk /dev" | grep -v mapper)
+   for DEV in ${DEVLIST}
+   do
+      if [[ ${DISKLIST} =~ (^| )${DEV}($| ) ]]
+      then
+         printf "\t${DEV} is a physical disk\n"
+      else
+         printf "\t${DEV} is a partition on a physical disk\n"
+      fi
+   done
+  
+}
+
 StigMounts
 CreateRootKVP
 
@@ -105,4 +120,6 @@ do
    printf "${TOKINF}\t${ELEM} "
    CoreDiskObjects "${ROOTDIRSKVP[${ELEM}]}"
 done
-echo "Dev-list: ${PHYSDEVLST}"
+
+printf "${TOKINF}\tOS filesystems found on: ${PHYSDEVLST}\n"
+CheckIfPart "${PHYSDEVLST}"
