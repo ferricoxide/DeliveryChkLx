@@ -2,13 +2,13 @@
 #
 # Script to audit filesystems/volumes/devices used for hosting the
 # root (OS) filesystems:
-#   o Number of devices
-#   o Size of devices
-#   o Partitioning of devices
-#     § if any STIG-mandated mounts are missing				(✓)
-#     § if any LVM2 volumes present in root VG that should not be	(✓)
-#     § Size of partitions/LVs						( )
-#     § Mount options (and if any STIG-mandated options are absent	( )
+# * Number of devices							(✓)
+# * Size of devices
+#   * Partitioning of devices
+#     * If any STIG-mandated mounts are missing				(✓)
+#     * If any LVM2 volumes present in root VG that should not be	(✓)
+#     * Size of partitions/LVs						( )
+#     * Mount options (and if any STIG-mandated options are absent)	( )
 #
 #################################################################
 BLOCKDEVS=($(fdisk -lu | awk '/Disk \/dev\/.*bytes/{ print $2}' | \
