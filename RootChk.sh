@@ -114,16 +114,39 @@ function CheckIfPart() {
 
 function GetRootVG() {
    local GETLVS=$(lvs --noheadings $(mount | awk '/ \/ /{ print $1}') 2> /dev/null)
-   echo ${GETLVS}
 
    if [ "${GETLVS}" = "" ]
    then
-      echo "\"/\" filesystem not in LVM Volume-Group"
+      printf "${TOKINF}\t\"/\" filesystem not in LVM Volume-Group\n"
    else
       VG=$(echo ${GETLVS} | awk '{print $2}')
-      echo "\"/\" filesystem in ${VG} LVM Volume-Group"
+      printf "${TOKINF}\t\"/\" filesystem is in LVM Volume-Group \"${VG}\".\n"
    fi
 }
+
+function RootVgMember() {
+   local LVLIST=$(lvs --noheadings VolGroup00 | awk '{print $1}')
+   local XCKLST="/ ${STIGMNTS[@]} /usr /opt"
+
+   echo ${LVLIST}
+   echo ${XCKLST}
+
+   # See only expected root volumes are in root volume-group
+   for LVOL in ${LVLIST}
+   do
+      local VOL2MNT=$(grep -w ${LVOL} /proc/mounts | awk '{print $2}')
+      local ISSWAP=$(awk '/'${LVOL}'/{print $2}' /etc/fstab)
+
+      if [[ ${XCKLST} =~ (^| )${VOL2MNT}($| ) ]] || [ "${ISSWAP}" != "" ]
+      then
+         printf "${TOKAOK}\t${LVOL} should be in ${VG}\n"
+      else
+         printf "${TOKERR}\t${LVOL} not expected to be in ${VG}\n"
+      fi
+   done
+      
+}
+
 
 StigMounts
 CreateRootKVP
@@ -138,3 +161,4 @@ printf "${TOKINF}\tOS filesystems found on: ${PHYSDEVLST}\n"
 CheckIfPart "${PHYSDEVLST}"
 
 GetRootVG
+RootVgMember
