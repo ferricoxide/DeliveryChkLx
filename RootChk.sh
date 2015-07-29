@@ -51,8 +51,9 @@ function GetMountDevs() {
    while [[ ${COUNT} -lt ${#ALLROOTDIRS[@]} ]]
    do
       local ARRKEY="${ALLROOTDIRS[${COUNT}]}"
-      local FSDEV=$(grep " ${ARRKEY} " /proc/mounts | sed 's/ .*$//')
-      echo "${FSDEV} mounted at ${ALLROOTDIRS[${COUNT}]}"
+      local FSDEV=$(grep " ${ARRKEY} " /proc/mounts | 
+                    sed -e '/rootfs/d' -e 's/ .*$//')
+      # Dump into associative-array for later processing
       ROOTDIRSKVP[${ALLROOTDIRS[${COUNT}]}]="${FSDEV}"
       
       ((COUNT++))
