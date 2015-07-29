@@ -66,7 +66,7 @@ function CoreDiskObjects() {
    local STOROBJ=$1
    case ${STOROBJ} in
       tmpfs) 
-         echo "is not on a block device"
+         RETSTR="is not on a block device"
          ;;
       /dev/mapper/*)
          local PHYSDEV=$(lvs --noheadings -o devices ${STOROBJ} | \
@@ -79,7 +79,7 @@ function CoreDiskObjects() {
             PHYSDEVLST="${PHYSDEVLST} ${PHYSDEV}"
          fi
 
-         echo "is on an LVM device"
+         RETSTR="is on an LVM device"
          ;;
       /dev/xv*|/dev/sd*)
 
@@ -89,12 +89,13 @@ function CoreDiskObjects() {
          else
             PHYSDEVLST="${PHYSDEVLST} ${STOROBJ}"
          fi
-         echo "is on a bare disk"
+         RETSTR="is on a bare disk"
          ;;
       *)
-         echo "is NOT categorizable"
+         RETSTR="is NOT categorizable"
          ;;
    esac
+   echo "${RETSTR}"
 }
 
 function CheckIfPart() {
