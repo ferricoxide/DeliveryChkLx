@@ -6,13 +6,14 @@
 #   o Size of devices
 #   o Partitioning of devices
 #     § if any STIG-mandated mounts are missing
-#     § if any volumes present that should not be
+#     § if any LVM2 volumes present in root VG that should not be
 #     § Size of partitions/LVs
 #     § Mount options (and if any STIG-mandated options are absent
 #################################################################
 BLOCKDEVS=($(fdisk -lu | awk '/Disk \/dev\/.*bytes/{ print $2}' | \
            grep -v "/mapper/" | sed 's/:$//'))
 KEYROOTDIRS=(/ /boot)
+ALLROOTDIRS=(${KEYROOTDIRS[@]})
 STIGMNTS=(		# STIG-mandated mounts
    /var
    /var/log
@@ -34,6 +35,7 @@ function StigMounts() {
       if [[ $? -eq 0 ]]
       then
          printf "${TOKAOK}\t${STIGMNTS[${COUNT}]} is a mount per STIGS\n"
+         ALLROOTDIRS+=(${STIGMNTS[${COUNT}]})
       else
          printf "${TOKERR}\t${STIGMNTS[${COUNT}]} is not a mount\n"
       fi
