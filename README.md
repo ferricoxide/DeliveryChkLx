@@ -1,5 +1,8 @@
 # DeliveryChkLx
 Collection of scripts to verify delivery-readiness of Linux instances
+ 
+ 
+**Note on Issues-Submission**: this repository is duplicated to other locations. If an issue is discovered, only issues that are submitted via [the primary dev-repository](https://github.com/ferricoxide/DeliveryChkLx) will be accepted.
 
 ## Info Gathered
 ### RootChk.sh:
