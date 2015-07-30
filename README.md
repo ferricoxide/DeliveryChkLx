@@ -23,10 +23,12 @@ Collection of scripts to verify delivery-readiness of Linux instances
 
 ### SELchk.sh
 * SELINUX Info
-  * Symlink between /etc/selinux/conf and /etc/sysconfig/selinux
-  * Configured enforcing-mode
-  * Active enforcing-mode
-  * Targeted enforcement-profile
+  * Verify /etc/selinux/config and /etc/sysconfig/selinux linking
+  * What enforcement-mode is set
+  * What enforcement-mode is active
+  * What enforcement-type is set
+  * Check whether system boooted with SELINUX active (via GRUB)
+  * Check whether set at boot (via GRUB)
 
 * Presence of known/approved A/V solution(s)
 * Presence of remote log-aggregation (splunk, etc.)
