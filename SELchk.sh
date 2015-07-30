@@ -6,7 +6,7 @@
 #   * What enforcement-mode is active					(✓)
 #   * What enforcement-type is set					( )
 #   * Check whether system boooted with SELINUX active (via GRUB)	(✓)
-#   * Check whether set at boot (via GRUB)				( )
+#   * Check whether set at boot (via GRUB)				(✓)
 #
 #################################################################
 FIX=${FIX:-0}
@@ -14,6 +14,7 @@ SELCFCANON=/etc/selinux/config
 SELCFSYSCF=/etc/sysconfig/selinux	# Linkpath ../selinux/config
 NORMALIZE='tr "[:upper:]" "[:lower:]"'
 
+SELPTRN="selinux=1"
 
 # Color-coded output tags
 TOKERR="\033[0;33m[CHECK]\033[0m"
@@ -55,10 +56,8 @@ function ChkModeMatch() {
 }
 
 # Check to see whether SEL is configured at boot
-function ChkKernelMode() {
-   SELPTRN="selinux=1"
-   CURBOOT=$(cat /proc/cmdline)
-   GRUBOPT=($(grep kernel /boot/grub/grub.conf))
+function ChkEpochMode() {
+   local CURBOOT=$(cat /proc/cmdline)
 
    if [[ ${CURBOOT} =~ (^| )${SELPTRN}($| ) ]]
    then
@@ -69,7 +68,23 @@ function ChkKernelMode() {
    fi
 
 }
+function ChkGrubModes() {
+   local GRUBCFG="/boot/grub/grub.conf"
+   BOOTINTO=$(awk -F"=" '/default=/{ print $2}' "${GRUBCFG}")
+
+   DFLTLINE=$(awk -v n=$((BOOTINTO + 1)) '/kernel/{cnt++} (cnt==n){print}' \
+              /boot/grub/grub.conf | sed -e 's/^[  ]//' -e '/initrd/d')
+
+   if [[ $(echo ${DFLTLINE} | grep -w "${SELPTRN}") ]]
+   then
+      printf "${TOKAOK}\tDefault GRUB menu-entry enables SELINUX at boot\n"
+   else
+      printf "${TOKERR}\tDefault GRUB option does not enable SELINUX at boot"
+      printf " [\033[0;31mNot STIG-compliant\033[0m]\n"
+   fi
+}
 
 ChkSELlink
 ChkModeMatch
-ChkKernelMode
+ChkEpochMode
+ChkGrubModes
