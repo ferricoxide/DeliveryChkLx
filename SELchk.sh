@@ -2,9 +2,10 @@
 #
 # * SELinux configuration
 #   * Verify /etc/selinux/config and /etc/sysconfig/selinux linking	(✓)
-#   * What enforcement-mode is set					( )
-#   * What enforcement-mode is active					( )
+#   * What enforcement-mode is set					(✓)
+#   * What enforcement-mode is active					(✓)
 #   * What enforcement-type is set					( )
+#   * Check whether system boooted with SELINUX active (via GRUB)	(✓)
 #   * Check whether set at boot (via GRUB)				( )
 #
 #################################################################
@@ -53,5 +54,22 @@ function ChkModeMatch() {
    fi
 }
 
+# Check to see whether SEL is configured at boot
+function ChkKernelMode() {
+   SELPTRN="selinux=1"
+   CURBOOT=$(cat /proc/cmdline)
+   GRUBOPT=($(grep kernel /boot/grub/grub.conf))
+
+   if [[ ${CURBOOT} =~ (^| )${SELPTRN}($| ) ]]
+   then
+      printf "${TOKAOK}\tSystem was booted with SELINUX enabled at boot\n"
+   else
+      printf "${TOKERR}\tSystem was not booted with SELINUX enabled at boot"
+      printf " [\033[0;31mNot STIG-compliant\033[0m]\n"
+   fi
+
+}
+
 ChkSELlink
 ChkModeMatch
+ChkKernelMode
