@@ -19,6 +19,7 @@ TOKERR="\033[0;33m[CHECK]\033[0m"
 TOKAOK="\033[0;32m[OK]\033[0m"
 TOKINF="\033[0;0m[INFO]\033[0m"
 
+# Check whether SELINUX config files properly linked
 function ChkSELlink() {
    if [[ $(readlink -f ${SELCFSYSCF}) = ${SELCFCANON} ]]
    then
@@ -36,16 +37,21 @@ function ChkSELlink() {
    fi
 }
 
+# Get SEL enforcement-mode - alert if different
+function ChkModeMatch() {
+   SETSELMODE=$(awk -F"=" '/^SELINUX=/{ print $2 }' ${SELCFCANON} | \
+                ${NORMALIZE})
+   ACTSELMODE=$(getenforce | ${NORMALIZE})
+
+   if [[ "${ACTSELMODE}" = "${SETSELMODE}" ]]
+   then
+      printf "${TOKINF}\tSELINUX configured-mode set to ${SETSELMODE}\n"
+      printf "${TOKINF}\tSELINUX active-mode set to ${ACTSELMODE}\n"
+   else
+      printf "${TOKERR}\tSELINUX configured-mode set to ${SETSELMODE}\n"
+      printf "${TOKERR}\tSELINUX active-mode set to ${ACTSELMODE}\n"
+   fi
+}
+
 ChkSELlink
-
-SETSELMODE=$(awk -F"=" '/^SELINUX=/{ print $2 }' ${SELCFCANON} | ${NORMALIZE})
-ACTSELMODE=$(getenforce | ${NORMALIZE})
-
-if [[ "${ACTSELMODE}" = "${SETSELMODE}" ]]
-then
-   printf "${TOKINF}\tSELINUX configured-mode set to ${SETSELMODE}\n"
-   printf "${TOKINF}\tSELINUX active-mode set to ${ACTSELMODE}\n"
-else
-   printf "${TOKERR}\tSELINUX configured-mode set to ${SETSELMODE}\n"
-   printf "${TOKERR}\tSELINUX active-mode set to ${ACTSELMODE}\n"
-fi
+ChkModeMatch
