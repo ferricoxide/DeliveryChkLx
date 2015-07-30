@@ -43,7 +43,13 @@ Collection of scripts to verify delivery-readiness of Linux instances
   * PBIS
   * Centrify
   * Native
-* IPTables configuration
+* Network Services
+  * Verify that nameservers defined in /etc/resolv.conf are reachable
+  * Verify that ntp servers defined in /etc/ntp.conf are reachable
+  * Check configuration of IPTables
+  * Check configuration of /etc/hosts.allow
+  * Check configuration of /etc/hosts.deny
+  * Check configuration of xinetd
 * sysctl.conf contents
 * Kernel Loadable Module Config
   * anaconda.conf
