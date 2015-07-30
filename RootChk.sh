@@ -52,6 +52,7 @@ function StigMounts() {
       
 }
 
+# Create associative array of mounts/devices
 function CreateRootKVP() {
    local COUNT
    while [[ ${COUNT} -lt ${#ALLROOTDIRS[@]} ]]
@@ -66,6 +67,8 @@ function CreateRootKVP() {
    done
 }
 
+# Determine if filesystem hosting object is a bare disk, an LVM2 LV
+# a pseudo-filesystem or something uncategorizable
 function CoreDiskObjects() {
    local STOROBJ=$1
    case ${STOROBJ} in
@@ -101,6 +104,7 @@ function CoreDiskObjects() {
    esac
 }
 
+# Compute what block-devices host root filesystem objects
 function CheckIfPart() {
    local DISKLIST="${1}"
    local ALLBLKDEVS="$(cd /sys/block ; echo *)"
@@ -109,7 +113,10 @@ function CheckIfPart() {
    # Check DISKLIST to compute parent device
    for ELEM in ${DISKLIST}
    do
+      # Avoid matching-gymnastics
       local ELEMCK=$(echo ${ELEM} | sed 's#/dev/##')
+      
+      # Keep truncating till we find a match
       while [ "${ELEMCK}" != "" ]
       do
          if [[ ${ALLBLKDEVS} =~ (^| )${ELEMCK}($| ) ]]
@@ -127,9 +134,11 @@ function CheckIfPart() {
       done
    done
    
+   # Return list of block-devices
    echo "${REALDISKS}"
 }
 
+# Determine what VG (if any) the "/" filesystem is in
 function GetRootVG() {
    local GETLVS=$(lvs --noheadings $(mount | awk '/ \/ /{ print $1}') 2> /dev/null)
 
@@ -142,14 +151,18 @@ function GetRootVG() {
    fi
 }
 
+# Try to tell if a volume should be in the root volume-group
 function RootVgMember() {
-   local LVLIST=$(lvs --noheadings VolGroup00 | awk '{print $1}')
-   local XCKLST="/ ${STIGMNTS[@]} /usr /opt"
+   local LVLIST=$(lvs --noheadings "${VG}" | awk '{print $1}')
+   local XCKLST="/ ${STIGMNTS[@]} /usr /opt"           # Use STIG-related plus
+                                                       # "normal" extras in list 
 
    # See only expected root volumes are in root volume-group
    for LVOL in ${LVLIST}
    do
+      # Map from volume-name to filesystem/mount-point
       local VOL2MNT=$(grep -w ${LVOL} /proc/mounts | awk '{print $2}')
+      # Make an exception for swap volumes
       local ISSWAP=$(awk '/'${LVOL}'/{print $2}' /etc/fstab)
 
       if [[ ${XCKLST} =~ (^| )${VOL2MNT}($| ) ]] || [ "${ISSWAP}" != "" ]

@@ -1,12 +1,18 @@
 # DeliveryChkLx
 Collection of scripts to verify delivery-readiness of Linux instances
+ 
+ 
+**Note on Issues-Submission**: this repository is duplicated to other locations. If an issue is discovered, only issues that are submitted via [the primary dev-repository](https://github.com/ferricoxide/DeliveryChkLx) will be accepted.
 
-Info Gathered
+## Info Gathered
+### RootChk.sh:
 * Size/Device-node for root disk
 * Partitioning info for root disk
 * LVM2 VolumeGroup space allocations
 * `df` info for root filesystems
 * `mount` info for root filesystems and associated pseudo-filesystems
+
+### GrubLinks.sh
 * Grub info
   * Contents
     * Audit-at-boot?
@@ -14,6 +20,14 @@ Info Gathered
     * Nousb-at-boot?
     * FIPS-at-boot?
   * Linking-verification
+
+### SELchk.sh
+* SELINUX Info
+  * Symlink between /etc/selinux/conf and /etc/sysconfig/selinux
+  * Configured enforcing-mode
+  * Active enforcing-mode
+  * Targeted enforcement-profile
+
 * Presence of known/approved A/V solution(s)
 * Presence of remote log-aggregation (splunk, etc.)
 * SSH Daemon config
@@ -32,7 +46,13 @@ Info Gathered
   * PBIS
   * Centrify
   * Native
-* IPTables configuration
+* Network Services
+  * Verify that nameservers defined in /etc/resolv.conf are reachable
+  * Verify that ntp servers defined in /etc/ntp.conf are reachable
+  * Check configuration of IPTables
+  * Check configuration of /etc/hosts.allow
+  * Check configuration of /etc/hosts.deny
+  * Check configuration of xinetd
 * sysctl.conf contents
 * Kernel Loadable Module Config
   * anaconda.conf
