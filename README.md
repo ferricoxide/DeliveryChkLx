@@ -1,12 +1,15 @@
 # DeliveryChkLx
 Collection of scripts to verify delivery-readiness of Linux instances
 
-Info Gathered
+## Info Gathered
+### RootChk.sh:
 * Size/Device-node for root disk
 * Partitioning info for root disk
 * LVM2 VolumeGroup space allocations
 * `df` info for root filesystems
 * `mount` info for root filesystems and associated pseudo-filesystems
+
+### GrubLinks.sh
 * Grub info
   * Contents
     * Audit-at-boot?
@@ -14,6 +17,14 @@ Info Gathered
     * Nousb-at-boot?
     * FIPS-at-boot?
   * Linking-verification
+
+### SELchk.sh
+* SELINUX Info
+  * Symlink between /etc/selinux/conf and /etc/sysconfig/selinux
+  * Configured enforcing-mode
+  * Active enforcing-mode
+  * Targeted enforcement-profile
+
 * Presence of known/approved A/V solution(s)
 * Presence of remote log-aggregation (splunk, etc.)
 * SSH Daemon config
