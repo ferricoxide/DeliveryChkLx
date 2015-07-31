@@ -5,11 +5,11 @@
 #     * Check if nameservers defined					( )
 #     * Check if declared servers are valid				( )
 #     * Check if name service-switch consults DNS			( )
-#   * Verify that ntp servers defined in /etc/ntp.conf are reachable
-#     * Check if file exists						( )
+#   * Verify state of NTP
+#     * Check if ntp.conf file exists					(✓)
 #     * Check if service enabled					(✓)
 #     * Check if service is running					(✓)
-#     * Check if declared servers are valid				( )
+#     * Check if declared servers are valid				(✓)
 #   * Check configuration of IPTables					( )
 #   * Check configuration of /etc/hosts.allow
 #     * Check if file exists						(✓)
@@ -43,6 +43,53 @@ function RunAtBoot() {
    echo ${CFGSTAT}
 }
 
+function PingTest() {
+  local SVC="${1}"
+  local TARG="${2}"
+  local PINGRSLT=$(ping -q -c 1 "${TARG}" > /dev/null 2>&1)$?
+
+  if [[ ${PINGRSLT} -eq 0 ]]
+  then
+     printf "${TOKAOK}\t${SVC}: ${TARG} responds to ping\n"
+  else
+     printf "${TOKERR}\t${SVC}: ${TARG} does not respond to ping\n"
+  fi
+}
+
+function NtpdChecks() {
+   local NTPDCFGSTAT=$(RunAtBoot ntpd)
+   local NTPDSVCSTAT=$(service ntpd status > /dev/null 2>&1)$?
+   local SVC="NTPD"
+   local CFGFILE="/etc/ntp.conf"
+
+   if [[ "${NTPDCFGSTAT}" = "on" ]]
+   then
+      printf "${TOKINF}\t${SVC}: service enabled for this run-level.\n"
+      # Check if NTPD is actively-running
+      if [[ ${NTPDSVCSTAT} -eq 0 ]]
+      then
+         printf "${TOKINF}\t${SVC}: time-service is running.\n"
+      else
+         printf "${TOKERR}\t${SVC}: time-service is not running.\n"
+      fi
+
+      # Basic service-validity check
+      if [[ -s ${CFGFILE} ]]
+      then
+         printf "${TOKAOK}\t${SVC}: config-file ${CFGFILE} exists.\n"
+         for HOST in $(awk '/^server/{ print $2 }' ${CFGFILE})
+         do
+            PingTest NTPD "${HOST}"
+            # Need to investigate pulling a sevice-verifying
+            # response from the remote service-provider
+         done
+      fi
+   else
+      printf "${TOKINF}\t${SVC}: service disabled for this run-level.\n"
+   fi
+
+}
+
 function CheckXinetdSvcs() {
    XINETSVCS=$(chkconfig --list --type xinetd | awk '{print $1}' | \
                sed -n -e '/:$/p' | sed -e 's/:$//')
@@ -56,29 +103,30 @@ function CheckXinetdSvcs() {
 function CheckXinetdMain() {
    local XNETSVCSTAT=$(service xinetd status > /dev/null 2>&1)$?
    local XNETCFGSTAT=$(RunAtBoot xinetd)
+   local SVC="Xinetd"
 
    # Check if Xinetd is configured to run from boot
    if [[ "${XNETCFGSTAT}" = "on" ]]
    then
-      printf "${TOKINF}\tXinetd service enabled for this run-level.\n"
+      printf "${TOKINF}\t${SVC}: service enabled for this run-level.\n"
 
       # Check if Xinetd is actively-running
       if [[ ${XNETSVCSTAT} -eq 0 ]]
       then
-         printf "${TOKINF}\tXinetd service-launcher running.\n"
+         printf "${TOKINF}\t${SVC}: service-launcher running.\n"
       else
-         printf "${TOKERR}\tXinetd service-launcher not running.\n"
+         printf "${TOKERR}\t${SVC}: service-launcher not running.\n"
       fi
 
       CheckXinetdSvcs
    elif [[ ${XNETSVCSTAT} -eq 0 ]]
    then
-      printf "${TOKINF}\tXinetd service disabled for this run-level.\n"
-      printf "${TOKERR}\tXinetd service-launcher running.\n"
+      printf "${TOKINF}\t${SVC}: service disabled for this run-level.\n"
+      printf "${TOKERR}\t${SVC}: service-launcher running.\n"
       # Note: the CheckXinetdSvcs function's dependecies break
       #       when Xinetd is not configured to start at boot
    else
-      printf "${TOKINF}\tXinetd service disabled for this run-level.\n"
+      printf "${TOKINF}\t${SVC}: service disabled for this run-level.\n"
    fi 
 }
 
@@ -105,38 +153,18 @@ function LibWrapChecks() {
    done
 }
 
-function NtpdChecks() {
-   local NTPDCFGSTAT=$(RunAtBoot ntpd)
-   local NTPDSVCSTAT=$(service ntpd status > /dev/null 2>&1)$?
-
-   if [[ "${NTPDCFGSTAT}" = "on" ]]
-   then
-      printf "${TOKINF}\tThe ntpd service enabled for this run-level.\n"
-      # Check if NTPD is actively-running
-      if [[ ${NTPDSVCSTAT} -eq 0 ]]
-      then
-         printf "${TOKINF}\tNTPD time-service is running.\n"
-      else
-         printf "${TOKERR}\tNTPD time-service is not running.\n"
-      fi
-   else
-      printf "${TOKINF}\tThe ntpd service enabled for this run-level.\n"
-   fi
-
-}
-
 
 #########
 ## MAIN
 #########
 
+NtpdChecks
 # Only call extended Xinetd checks if service installed
 if [[ "${HAVEXINETD}" = "yes" ]]
 then
-   printf "${TOKINF}\tXinetd service-launcher installed.\n"
+   printf "${TOKINF}\tXinetd: service-launcher installed.\n"
    CheckXinetdMain
 else
-   printf "${TOKINF}\tXinetd service-launcher not installed.\n"
+   printf "${TOKINF}\tXinetd: service-launcher not installed.\n"
 fi
 LibWrapChecks
-NtpdChecks
