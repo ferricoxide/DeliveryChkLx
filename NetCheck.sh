@@ -108,7 +108,8 @@ function DnsCheck() {
    local CFGFILE="/etc/resolv.conf"
    local SWITCHCFG="/etc/nsswitch.conf"
 
-   local SERVERLIST=$(awk '/^[ ]*nameserver/{print $2}' ${CFGFILE})
+   local SERVERLIST=($(awk '/^[ ]*nameserver/{print $2}' ${CFGFILE}))
+   local SERVERLIST=${SERVERLIST[@]}
    if [[ "${SERVERLIST}" = "" ]]
    then
       printf "${TOKBAD}\t${SVC}: No server entries found in ${CFGFILE}.\n"
