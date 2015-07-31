@@ -4,7 +4,7 @@
 #   * Verify /etc/selinux/config and /etc/sysconfig/selinux linking	(✓)
 #   * What enforcement-mode is set					(✓)
 #   * What enforcement-mode is active					(✓)
-#   * What enforcement-type is set					( )
+#   * What enforcement-type is set					(✓)
 #   * Check whether system boooted with SELINUX active (via GRUB)	(✓)
 #   * Check whether set at boot (via GRUB)				(✓)
 #
@@ -61,7 +61,9 @@ function ChkEpochMode() {
 
    if [[ ${CURBOOT} =~ (^| )${SELPTRN}($| ) ]]
    then
+      local SELENFTYPE=$(awk -F "=" '/^SELINUXTYPE/{ print $2}' ${SELCFCANON})
       printf "${TOKAOK}\tSystem was booted with SELINUX enabled at boot\n"
+      printf "${TOKINF}\tSELINUX enforcement-profile: ${SELENFTYPE}\n"
    else
       printf "${TOKERR}\tSystem was not booted with SELINUX enabled at boot"
       printf " [\033[0;31mNot STIG-compliant\033[0m]\n"
@@ -83,7 +85,6 @@ function ChkGrubModes() {
       printf " [\033[0;31mNot STIG-compliant\033[0m]\n"
    fi
 }
-
 ChkSELlink
 ChkModeMatch
 ChkEpochMode
