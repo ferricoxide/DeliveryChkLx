@@ -1,11 +1,21 @@
 #!/bin/sh
 #
 # * Network Services
-#   * Verify that nameservers defined in /etc/resolv.conf are reachable	( )
-#   * Verify that ntp servers defined in /etc/ntp.conf are reachable	( )
+#   * Verify that nameservers defined in /etc/resolv.conf are reachable
+#     * Check if nameservers defined					( )
+#     * Check if declared servers are valid				( )
+#     * Check if name service-switch consults DNS			( )
+#   * Verify that ntp servers defined in /etc/ntp.conf are reachable
+#     * Check if file exists						( )
+#     * Check if service enabled					( )
+#     * Check if declared servers are valid				( )
 #   * Check configuration of IPTables					( )
-#   * Check configuration of /etc/hosts.allow				( )
-#   * Check configuration of /etc/hosts.deny				( )
+#   * Check configuration of /etc/hosts.allow
+#     * Check if file exists						( )
+#     * Check if active rules present					( )
+#   * Check configuration of /etc/hosts.deny
+#     * Check if file exists						( )
+#     * Check if active rules present					( )
 #   * Check configuration of xinetd					
 #     * Check install-status						(✓)
 #     * Check start at boot						(✓)
