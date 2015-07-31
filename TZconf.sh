@@ -3,7 +3,26 @@
 # Script to ensure that host's timzeone configuration is
 # correctly set up. Invoke with optional timezone argument:
 #
-# Usage: TimeCfg.sh [ TIMEZONE ]
+# Usage: TZconf.sh [ TIMEZONE ]
+#
+# * Config checks/fixes:
+#   * Fix /etc/sysconfig/clock if necessary		(✓)
+#   * Verify that /etc/localtime is correct		(✓)
+#   * Check if TZ set and set properly at shell-level
+#     * Check /etc/profile				(✓)
+#     * Check /etc/profile.d/* files			(✓)
+#     * Check /etc/csh.cshrc				(✓)
+#     * Check /etc/csh.login				(✓)
+#     * Check ${HOME}/.profile				(✓)
+#     * Check ${HOME}/.bash_profile			(✓)
+#     * Check ${HOME}/.bashrc				(✓)
+#     * Check ${HOME}/.cshrc				(✓)
+#     * Check ${HOME}/.kshrc				(✓)
+#     * Check ${HOME}/.tcshrc				(✓)
+#
+# LEGEND:
+#   (✓) Feature implemented
+#   ( ) Feature not implemented
 #
 ############################################################
 WANTEDTZ=${1:-UTC}

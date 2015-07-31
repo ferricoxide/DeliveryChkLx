@@ -13,6 +13,11 @@
 # NOTE: This script is a check-only script. No fix-actions defined
 #       within this script
 #
+#
+# LEGEND:
+#   (✓) Feature implemented
+#   ( ) Feature not implemented
+#
 #################################################################
 BLOCKDEVS=($(fdisk -lu | awk '/Disk \/dev\/.*bytes/{ print $2}' | \
            grep -v "/mapper/" | sed 's/:$//'))

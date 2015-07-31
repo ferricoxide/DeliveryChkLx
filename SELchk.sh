@@ -8,6 +8,11 @@
 #   * Check whether system boooted with SELINUX active (via GRUB)	(✓)
 #   * Check whether set at boot (via GRUB)				(✓)
 #
+#
+# LEGEND:
+#   (✓) Feature implemented
+#   ( ) Feature not implemented
+#
 #################################################################
 FIX=${FIX:-0}
 SELCFCANON=/etc/selinux/config
