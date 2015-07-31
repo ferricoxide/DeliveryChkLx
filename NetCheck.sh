@@ -7,7 +7,8 @@
 #     * Check if name service-switch consults DNS			( )
 #   * Verify that ntp servers defined in /etc/ntp.conf are reachable
 #     * Check if file exists						( )
-#     * Check if service enabled					( )
+#     * Check if service enabled					(✓)
+#     * Check if service is running					(✓)
 #     * Check if declared servers are valid				( )
 #   * Check configuration of IPTables					( )
 #   * Check configuration of /etc/hosts.allow
@@ -106,9 +107,19 @@ function LibWrapChecks() {
 
 function NtpdChecks() {
    local NTPDCFGSTAT=$(RunAtBoot ntpd)
+   local NTPDSVCSTAT=$(service ntpd status > /dev/null 2>&1)$?
 
    if [[ "${NTPDCFGSTAT}" = "on" ]]
    then
+      printf "${TOKINF}\tThe ntpd service enabled for this run-level.\n"
+      # Check if NTPD is actively-running
+      if [[ ${NTPDSVCSTAT} -eq 0 ]]
+      then
+         printf "${TOKINF}\tNTPD time-service is running.\n"
+      else
+         printf "${TOKERR}\tNTPD time-service is not running.\n"
+      fi
+   else
       printf "${TOKINF}\tThe ntpd service enabled for this run-level.\n"
    fi
 
