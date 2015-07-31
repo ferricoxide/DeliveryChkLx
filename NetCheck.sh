@@ -14,6 +14,7 @@
 #
 #################################################################
 HAVEXINETD=$(rpm --quiet -q xinetd && echo "yes" || echo "no")
+CURRUNLEVL=$(who -r | awk '{print $2}')
 
 # Color-coded status tokens
 TOKERR="\033[0;33m[CHECK]\033[0m"
@@ -25,6 +26,13 @@ function CheckXinetdStuff() {
    if [[ $? -eq 0 ]]
    then
       printf "${TOKINF}\tXinetd service-launcher running.\n"
+      XINETSVCS=$(chkconfig --list --type xinetd | awk '{print $1}' | \
+                  sed -n -e '/:$/p' | sed -e 's/:$//')
+      for XSVC in ${XINETSVCS}
+      do
+         SVCSTAT=$(chkconfig --list --type xinetd ${XSVC} | awk '{print $2}')
+         printf "${TOKINF}\tXinetd-managed service ${XSVC} is ${SVCSTAT}.\n"
+      done
    else
       printf "${TOKINF}\tXinetd service-launcher not running.\n"
    fi 
