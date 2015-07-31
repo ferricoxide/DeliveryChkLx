@@ -2,9 +2,9 @@
 #
 # * Network Services
 #   * Verify that nameservers defined in /etc/resolv.conf are reachable
-#     * Check if nameservers defined					( )
-#     * Check if declared servers are valid				( )
-#     * Check if name service-switch consults DNS			( )
+#     * Check if nameservers defined					(✓)
+#     * Check if declared servers are valid				(✓)
+#     * Check if name service-switch consults DNS			(✓)
 #   * Verify state of NTP
 #     * Check if ntp.conf file exists					(✓)
 #     * Check if service enabled					(✓)
@@ -32,6 +32,7 @@ HAVEXINETD=$(rpm --quiet -q xinetd && echo "yes" || echo "no")
 CURRUNLEVL=$(who -r | awk '{print $2}')
 
 # Color-coded status tokens
+TOKBAD="\033[0;31m[ALERT]\033[0m"
 TOKERR="\033[0;33m[CHECK]\033[0m"
 TOKAOK="\033[0;32m[OK]\033[0m"
 TOKINF="\033[0;0m[INFO]\033[0m"
@@ -46,7 +47,7 @@ function RunAtBoot() {
 function PingTest() {
   local SVC="${1}"
   local TARG="${2}"
-  local PINGRSLT=$(ping -q -c 1 "${TARG}" > /dev/null 2>&1)$?
+  local PINGRSLT=$(ping -q -t 1 -c 1 "${TARG}" > /dev/null 2>&1)$?
 
   if [[ ${PINGRSLT} -eq 0 ]]
   then
@@ -86,6 +87,48 @@ function NtpdChecks() {
       fi
    else
       printf "${TOKINF}\t${SVC}: service disabled for this run-level.\n"
+   fi
+
+}
+
+function DnsCheck() {
+   local SVC="DNS"
+   local CFGFILE="/etc/resolv.conf"
+   local SWITCHCFG="/etc/nsswitch.conf"
+
+   local SERVERLIST=$(awk '/^[ ]*nameserver/{print $2}' ${CFGFILE})
+   if [[ "${SERVERLIST}" = "" ]]
+   then
+      printf "${TOKBAD}\t${SVC}: No server entries found in ${CFGFILE}.\n"
+   else
+      printf "${TOKAOK}\t${SVC}: Found nameserver(s): ${SERVERLIST}\n"
+      for HOST in ${SERVERLIST}
+      do
+         printf "${TOKINF}\t${SVC}: Trying to ping ${HOST}...\n"
+         PingTest DNS "${HOST}"
+
+         # Need to be a bit fancier...
+         export HOST
+         printf "${TOKINF}\t${SVC}: Attempting service-connect to ${HOST}...\n"
+         local SOCKTEST=$(timeout 5 bash -c 'cat < /dev/null > \
+                          /dev/tcp/${HOST}/53')$?
+
+         if [[ ${SOCKTEST} -eq 0 ]]
+         then
+            printf "${TOKAOK}\t${SVC}: Socket-test passed.\n"
+         else
+            printf "${TOKBAD}\t${SVC}: Socket-test failed.\n"
+         fi
+
+      done
+   fi
+
+   local NSSWITCH=$(grep -qE "^hosts:.*dns.*" ${SWITCHCFG})$?
+   if [[ ${NSSWITCH} -eq 0 ]]
+   then
+      printf "${TOKAOK}\t${SVC}: ${SWITCHCFG} configured for ${SVC}\n"
+   else
+      printf "${TOKBAD}\t${SVC}: ${SWITCHCFG} not configured for ${SVC}\n"
    fi
 
 }
@@ -158,6 +201,7 @@ function LibWrapChecks() {
 ## MAIN
 #########
 
+DnsCheck
 NtpdChecks
 # Only call extended Xinetd checks if service installed
 if [[ "${HAVEXINETD}" = "yes" ]]
