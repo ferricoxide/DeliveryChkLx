@@ -35,6 +35,13 @@ TOKERR="\033[0;33m[CHECK]\033[0m"
 TOKAOK="\033[0;32m[OK]\033[0m"
 TOKINF="\033[0;0m[INFO]\033[0m"
 
+function RunAtBoot() {
+   local CFGSTAT=$(chkconfig ${1} --list | \
+                   sed -e 's/^.*'${CURRUNLEVL}'://' \
+                   -e 's/[	 ][	 ]*.*$//')
+   echo ${CFGSTAT}
+}
+
 function CheckXinetdSvcs() {
    XINETSVCS=$(chkconfig --list --type xinetd | awk '{print $1}' | \
                sed -n -e '/:$/p' | sed -e 's/:$//')
@@ -47,9 +54,7 @@ function CheckXinetdSvcs() {
 
 function CheckXinetdMain() {
    local XNETSVCSTAT=$(service xinetd status > /dev/null 2>&1)$?
-   local XNETCFGSTAT=$(chkconfig xinetd --list | \
-                       sed -e 's/^.*'${CURRUNLEVL}'://' \
-                       -e 's/[	 ][	 ]*.*$//')
+   local XNETCFGSTAT=$(RunAtBoot xinetd)
 
    # Check if Xinetd is configured to run from boot
    if [[ "${XNETCFGSTAT}" = "on" ]]
@@ -99,6 +104,16 @@ function LibWrapChecks() {
    done
 }
 
+function NtpdChecks() {
+   local NTPDCFGSTAT=$(RunAtBoot ntpd)
+
+   if [[ "${NTPDCFGSTAT}" = "on" ]]
+   then
+      printf "${TOKINF}\tThe ntpd service enabled for this run-level.\n"
+   fi
+
+}
+
 
 #########
 ## MAIN
@@ -113,3 +128,4 @@ else
    printf "${TOKINF}\tXinetd service-launcher not installed.\n"
 fi
 LibWrapChecks
+NtpdChecks
