@@ -11,11 +11,11 @@
 #     * Check if declared servers are valid				( )
 #   * Check configuration of IPTables					( )
 #   * Check configuration of /etc/hosts.allow
-#     * Check if file exists						( )
-#     * Check if active rules present					( )
+#     * Check if file exists						(✓)
+#     * Check if active rules present					(✓)
 #   * Check configuration of /etc/hosts.deny
-#     * Check if file exists						( )
-#     * Check if active rules present					( )
+#     * Check if file exists						(✓)
+#     * Check if active rules present					(✓)
 #   * Check configuration of xinetd					
 #     * Check install-status						(✓)
 #     * Check start at boot						(✓)
@@ -76,6 +76,35 @@ function CheckXinetdMain() {
    fi 
 }
 
+function LibWrapChecks() {
+   local LIBWRAPCFG=(/etc/hosts.allow /etc/hosts.deny)
+
+   while [[ ${LOOP} -lt ${#LIBWRAPCFG[@]} ]]
+   do
+      # Check if file exists
+      if [[ -s ${LIBWRAPCFG[${LOOP}]} ]]
+      then
+         printf "${TOKINF}\t${LIBWRAPCFG[${LOOP}]} exists.\n"
+      fi
+      # Check if any config directives active
+      if [[ "$(grep -v "^#" ${LIBWRAPCFG[${LOOP}]})" = "" ]]
+      then
+         printf "\t* Found no service-definitions.\n"
+      else
+         printf "\t* Found service-definitions:\n"
+         grep -v "^#" ${LIBWRAPCFG[${LOOP}]} | sed 's/^/\t  | /'
+         
+      fi
+      LOOP+=1
+   done
+}
+
+
+#########
+## MAIN
+#########
+
+# Only call extended Xinetd checks if service installed
 if [[ "${HAVEXINETD}" = "yes" ]]
 then
    printf "${TOKINF}\tXinetd service-launcher installed.\n"
@@ -83,3 +112,4 @@ then
 else
    printf "${TOKINF}\tXinetd service-launcher not installed.\n"
 fi
+LibWrapChecks
