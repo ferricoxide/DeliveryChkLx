@@ -3,6 +3,18 @@
 # Script to identify what GRUB-related config files are present
 # and if they are properly linked
 #
+# * Contents
+#   * Check if audit-at-boot boot-option is set			( )
+#   * Check if selinux-at-boot boot-option is set		( )
+#   * Check if USB support disabled at boot			( )
+#   * Check if FIPS boot-option is set				( )
+#   * Verify that GRUB configuration files are properly linked	(✓)
+#
+#
+# LEGEND:
+#   (✓) Feature implemented
+#   ( ) Feature not implemented
+#
 #################################################################
 GRUBCANON="/boot/grub/grub.conf"
 GRUBFILES=($(echo /etc/grub.conf ;find /boot -name grub.conf -o -name menu.lst))
