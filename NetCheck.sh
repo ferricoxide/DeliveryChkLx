@@ -74,15 +74,27 @@ function NtpdChecks() {
          printf "${TOKERR}\t${SVC}: time-service is not running.\n"
       fi
 
-      # Basic service-validity check
+      # Basic service-validity checks
       if [[ -s ${CFGFILE} ]]
       then
          printf "${TOKAOK}\t${SVC}: config-file ${CFGFILE} exists.\n"
          for HOST in $(awk '/^server/{ print $2 }' ${CFGFILE})
          do
+            printf "${TOKINF}\t${SVC}: Trying to ping ${HOST}...\n"
             PingTest NTPD "${HOST}"
-            # Need to investigate pulling a sevice-verifying
-            # response from the remote service-provider
+
+            export HOST
+            printf "${TOKINF}\t${SVC}: Attempting service-connect to "
+            printf "${HOST}...\n"
+            local SOCKTEST=$(timeout 5 bash -c 'cat < /dev/null > \
+                             /dev/tcp/${HOST}/123')$?
+
+            if [[ ${SOCKTEST} -eq 0 ]]
+            then
+               printf "${TOKAOK}\t${SVC}: Socket-test passed.\n"
+            else
+               printf "${TOKBAD}\t${SVC}: Socket-test failed.\n"
+            fi
          done
       fi
    else
